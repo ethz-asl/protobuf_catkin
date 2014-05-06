@@ -17,9 +17,10 @@ ExternalProject_Add(protobuf
 cs_add_library(${PROJECT_NAME}_dependency_tracker src/dependency_tracker.cc)
 link_directories(${CATKIN_DEVEL_PREFIX}/lib)
 add_dependencies(${PROJECT_NAME}_dependency_tracker protobuf)
-file (GLOB_RECURSE ${PROJECT_NAME}_LIBS ${CATKIN_DEVEL_PREFIX}/lib/libproto*.so)
-list(REMOVE_ITEM ${PROJECT_NAME}_LIBS "*dependency_tracker*")
-target_link_libraries(${PROJECT_NAME}_dependency_tracker ${${PROJECT_NAME}_LIBS})
+target_link_libraries(${PROJECT_NAME}_dependency_tracker 
+  ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf-lite.so 
+  ${CATKIN_DEVEL_PREFIX}/lib/libprotoc.so 
+  ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf.so)
 
 cs_install()
 
