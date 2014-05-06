@@ -18,7 +18,7 @@ cs_add_library(${PROJECT_NAME}_dependency_tracker src/dependency_tracker.cc)
 link_directories(${CATKIN_DEVEL_PREFIX}/lib)
 add_dependencies(${PROJECT_NAME}_dependency_tracker protobuf)
 file (GLOB_RECURSE ${PROJECT_NAME}_LIBS ${CATKIN_DEVEL_PREFIX}/lib/libproto*.so)
-list(REMOVE_ITEM ${PROJECT_NAME}_LIBS "lib${PROJECT_NAME}_dependency_tracker*")
+list(REMOVE_ITEM ${PROJECT_NAME}_LIBS "*dependency_tracker*")
 target_link_libraries(${PROJECT_NAME}_dependency_tracker ${${PROJECT_NAME}_LIBS})
 
 cs_install()
