@@ -14,9 +14,9 @@ ExternalProject_Add(protobuf_src
   INSTALL_COMMAND cd ../protobuf_src && make install -j8
 )
 
-cs_add_library(${PROJECT_NAME}_dependency_tracker src/dependency_tracker.cc)
-add_dependencies(${PROJECT_NAME}_dependency_tracker protobuf_src)
-target_link_libraries(${PROJECT_NAME}_dependency_tracker 
+cs_add_library(${PROJECT_NAME} src/dependency_tracker.cc)
+add_dependencies(${PROJECT_NAME} protobuf_src)
+target_link_libraries(${PROJECT_NAME} 
   ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf-lite${CMAKE_SHARED_LIBRARY_SUFFIX}
   ${CATKIN_DEVEL_PREFIX}/lib/libprotoc${CMAKE_SHARED_LIBRARY_SUFFIX}
   ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf${CMAKE_SHARED_LIBRARY_SUFFIX})
