@@ -5,7 +5,6 @@ find_package(catkin_simple REQUIRED)
 catkin_simple()
 
 include(ExternalProject)
-link_directories(${CATKIN_DEVEL_PREFIX}/lib)
 
 ExternalProject_Add(protobuf_src
   SVN_REPOSITORY http://protobuf.googlecode.com/svn/trunk/
@@ -18,9 +17,9 @@ ExternalProject_Add(protobuf_src
 cs_add_library(${PROJECT_NAME}_dependency_tracker src/dependency_tracker.cc)
 add_dependencies(${PROJECT_NAME}_dependency_tracker protobuf_src)
 target_link_libraries(${PROJECT_NAME}_dependency_tracker 
-  protobuf-lite 
-  protoc
-  protobuf)
+  ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf-lite${CMAKE_SHARED_LIBRARY_SUFFIX}
+  ${CATKIN_DEVEL_PREFIX}/lib/libprotoc${CMAKE_SHARED_LIBRARY_SUFFIX}
+  ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf${CMAKE_SHARED_LIBRARY_SUFFIX})
 
 cs_install()
 
