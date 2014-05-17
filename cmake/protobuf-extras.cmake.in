@@ -1,5 +1,5 @@
 # This overrides the dependency tracker with the protobuf library file.
 set( @PROJECT_NAME@_LIBRARIES 
-	${CATKIN_DEVEL_PREFIX}/lib/libprotobuf-lite${CMAKE_SHARED_LIBRARY_SUFFIX}
-	${CATKIN_DEVEL_PREFIX}/lib/libprotoc${CMAKE_SHARED_LIBRARY_SUFFIX}
-	${CATKIN_DEVEL_PREFIX}/lib/libprotobuf${CMAKE_SHARED_LIBRARY_SUFFIX} )
+	@CATKIN_DEVEL_PREFIX@/lib/libprotobuf-lite${CMAKE_SHARED_LIBRARY_SUFFIX}
+	@CATKIN_DEVEL_PREFIX@/lib/libprotoc${CMAKE_SHARED_LIBRARY_SUFFIX}
+	@CATKIN_DEVEL_PREFIX@/lib/libprotobuf${CMAKE_SHARED_LIBRARY_SUFFIX} )

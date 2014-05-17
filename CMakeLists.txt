@@ -6,6 +6,9 @@ catkin_simple()
 
 include(ExternalProject)
 
+# We don't know why catkin doesn't make this directory
+file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
+
 ExternalProject_Add(protobuf_src
   SVN_REPOSITORY http://protobuf.googlecode.com/svn/trunk/
   UPDATE_COMMAND ""
