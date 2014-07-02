@@ -9,7 +9,7 @@ include(ExternalProject)
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 
 ExternalProject_Add(protobuf_src
-  SVN_REPOSITORY http://protobuf.googlecode.com/svn/trunk/
+  URL https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
   UPDATE_COMMAND ""
   CONFIGURE_COMMAND cd ../protobuf_src && ./autogen.sh && ./configure --with-pic --prefix=${CATKIN_DEVEL_PREFIX}
   BUILD_COMMAND cd ../protobuf_src && make -j8
