@@ -33,6 +33,13 @@ function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
     set(_protobuf_include_path -I ${CMAKE_CURRENT_SOURCE_DIR})
   endif()
 
+  # Add custom protobuf include directories
+  if(PROTOBUF_EXPORT_PATH)
+    foreach(PBEP ${PROTOBUF_EXPORT_PATH})
+      list(APPEND _protobuf_include_path -I ${PBEP})
+    endforeach()
+  endif()
+
   set(${SRCS})
   set(${HDRS})
   foreach(FIL ${ARGN})
