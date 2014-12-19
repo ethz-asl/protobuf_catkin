@@ -1,0 +1,10 @@
+--- /Users/slynen/catkin_ws/devel/include/google/protobuf/stubs/common.h	2014-12-19 11:31:19.000000000 +0100
++++ /Users/slynen/catkin_ws/devel/include/google/protobuf/stubs/common_patched.h	2014-12-19 11:29:59.000000000 +0100
+@@ -721,6 +721,7 @@
+ namespace internal {
+ template<typename T>
+ T* CheckNotNull(const char *file, int line, const char *name, T* val) {
++  static_cast<void>(file);
+   if (val == NULL) {
+     GOOGLE_LOG(FATAL) << name;
+   }

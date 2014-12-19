@@ -1,0 +1,10 @@
+--- /Users/slynen/catkin_ws/devel/include/google/protobuf/extension_set.h	2014-12-19 11:31:19.000000000 +0100
++++ /Users/slynen/catkin_ws/devel/include/google/protobuf/extension_set_patched.h	2014-12-19 11:30:10.000000000 +0100
+@@ -796,6 +796,7 @@
+   }
+   static inline MutableType Release(int number, FieldType field_type,
+                                     ExtensionSet* set) {
++    static_cast<void>(field_type);
+     return static_cast<Type*>(set->ReleaseMessage(
+         number, Type::default_instance()));
+   }
