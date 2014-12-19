@@ -11,6 +11,7 @@ file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 ExternalProject_Add(protobuf_src
   URL https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
   UPDATE_COMMAND ""
+  PATCH_COMMAND cd ../protobuf_src/ && patch -N src/google/protobuf/extension_set.h ${CMAKE_CURRENT_SOURCE_DIR}/extension_set_h.patch && patch -N src/google/protobuf/stubs/common.h ${CMAKE_CURRENT_SOURCE_DIR}/common_h.patch
   CONFIGURE_COMMAND cd ../protobuf_src && ./autogen.sh && ./configure --with-pic --prefix=${CATKIN_DEVEL_PREFIX}
   BUILD_COMMAND cd ../protobuf_src && make -j8
   INSTALL_COMMAND cd ../protobuf_src && make install -j8
