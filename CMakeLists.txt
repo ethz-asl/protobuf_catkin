@@ -9,8 +9,9 @@ include(ExternalProject)
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 
 ExternalProject_Add(protobuf_src
-  URL https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+  URL https://github.com/google/protobuf/releases/download/v2.5.0/protobuf-2.5.0.tar.bz2
   UPDATE_COMMAND ""
+  PATCH_COMMAND cd ../protobuf_src/ && patch -N src/google/protobuf/extension_set.h ${CMAKE_CURRENT_SOURCE_DIR}/extension_set_h.patch && patch -N src/google/protobuf/stubs/common.h ${CMAKE_CURRENT_SOURCE_DIR}/common_h.patch
   CONFIGURE_COMMAND cd ../protobuf_src && ./autogen.sh && ./configure --with-pic --prefix=${CATKIN_DEVEL_PREFIX}
   BUILD_COMMAND cd ../protobuf_src && make -j8
   INSTALL_COMMAND cd ../protobuf_src && make install -j8
@@ -18,7 +19,7 @@ ExternalProject_Add(protobuf_src
 
 cs_add_library(${PROJECT_NAME} src/dependency_tracker.cc)
 add_dependencies(${PROJECT_NAME} protobuf_src)
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} 
   ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf-lite${CMAKE_SHARED_LIBRARY_SUFFIX}
   ${CATKIN_DEVEL_PREFIX}/lib/libprotoc${CMAKE_SHARED_LIBRARY_SUFFIX}
   ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf${CMAKE_SHARED_LIBRARY_SUFFIX})
