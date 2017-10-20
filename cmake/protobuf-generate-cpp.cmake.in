@@ -13,7 +13,10 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+# Legacy function for backwards compatibility.
 function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
+  message(WARNING "PROTOBUF_CATKIN_GENERATE_CPP is deprecated. Please use PROTOBUF_CATKIN_GENERATE_CPP2 instead. Check the Readme for details.")
+
   if(NOT ARGN)
     message(SEND_ERROR "Error: PROTOBUF_CATKIN_GENERATE_CPP() called without any proto files")
     return()
@@ -54,6 +57,75 @@ function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
              "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
       COMMAND  "@CATKIN_DEVEL_PREFIX@/bin/protoc"
       ARGS --cpp_out  ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
+      DEPENDS ${ABS_FIL}
+      COMMENT "Running C++ protocol buffer compiler on ${FIL}"
+      VERBATIM )
+  endforeach()
+
+  set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
+  set(${SRCS} ${${SRCS}} PARENT_SCOPE)
+  set(${HDRS} ${${HDRS}} PARENT_SCOPE)
+endfunction()
+
+function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
+  if(NOT ARGN)
+    message(SEND_ERROR "Error: PROTOBUF_CATKIN_GENERATE_CPP2() called without any proto files")
+    return()
+  endif(NOT ARGN)
+
+  list(APPEND _protobuf_include_path -I ${CMAKE_CURRENT_SOURCE_DIR}/${BASE_PATH})
+
+  set(${SRCS})
+  set(${HDRS})
+
+  # Folder where the proto sources are generated in. This should resolve to
+  # "build/project_name/compiled_proto".
+  set(COMPILED_PROTO_FOLDER "${CMAKE_CURRENT_BINARY_DIR}/compiled_proto")
+  file(MAKE_DIRECTORY ${COMPILED_PROTO_FOLDER})
+
+  # Folder where the generated headers are installed to. This should resolve to
+  # "devel/include".
+  set(PROTO_GENERATED_HEADERS_INSTALL_DIR
+      ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION})
+  file(MAKE_DIRECTORY ${PROTO_GENERATED_HEADERS_INSTALL_DIR})
+
+  # Folder where the proto files are placed, so that they can be used in other
+  # proto definitions. This should resolve to "devel/share/proto".
+  set(PROTO_FILE_INSTALL_DIR 
+      ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_SHARE_DESTINATION}/proto)
+  file(MAKE_DIRECTORY ${PROTO_FILE_INSTALL_DIR})
+  list(APPEND _protobuf_include_path -I ${PROTO_FILE_INSTALL_DIR})
+
+  foreach(FIL ${ARGN})
+    get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
+    get_filename_component(FIL_WE ${FIL} NAME_WE)
+    get_filename_component(FIL_REL_DIR ${FIL} DIRECTORY)
+
+    # FIL_REL_DIR contains the path to the proto file, starting inside
+    # BASE_PATH. E.g., for base path "proto" and file 
+    # "proto/project/definitions.proto", FIL_REL_DIR would be "project".
+    string(REGEX REPLACE "${BASE_PATH}/?" "" FIL_REL_DIR ${FIL_REL_DIR})
+    set(OUTPUT_FOLDER ${COMPILED_PROTO_FOLDER}/${FIL_REL_DIR})
+    set(OUTPUT_FOLDER_BASE ${COMPILED_PROTO_FOLDER})
+    file(MAKE_DIRECTORY ${OUTPUT_FOLDER})
+    set(OUTPUT_BASE_FILE_NAME "${OUTPUT_FOLDER}/${FIL_WE}")
+
+    list(APPEND ${SRCS} "${OUTPUT_BASE_FILE_NAME}.pb.cc")
+    list(APPEND ${HDRS} "${OUTPUT_BASE_FILE_NAME}.pb.h")
+
+    add_custom_command(
+      OUTPUT "${OUTPUT_BASE_FILE_NAME}.pb.cc"
+             "${OUTPUT_BASE_FILE_NAME}.pb.h"
+             "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
+             "${PROTO_FILE_INSTALL_DIR}/${PROJECT_NAME}/${FIL_WE}.proto"
+      COMMAND  "${CATKIN_DEVEL_PREFIX}/bin/protoc"
+      ARGS --cpp_out  ${OUTPUT_FOLDER_BASE} ${_protobuf_include_path} ${ABS_FIL}
+      COMMAND ${CMAKE_COMMAND} -E copy
+              "${OUTPUT_BASE_FILE_NAME}.pb.h"
+              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.pb.h"
+      COMMAND ${CMAKE_COMMAND} -E copy
+              ${ABS_FIL}
+              "${PROTO_FILE_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.proto"
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++ protocol buffer compiler on ${FIL}"
       VERBATIM )
