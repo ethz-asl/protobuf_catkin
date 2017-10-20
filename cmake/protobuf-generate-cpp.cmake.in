@@ -15,6 +15,8 @@
 
 # Legacy function for backwards compatibility.
 function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
+  message(WARNING "PROTOBUF_CATKIN_GENERATE_CPP is deprecated. Please use PROTOBUF_CATKIN_GENERATE_CPP2 instead. Check the Readme for details.")
+
   if(NOT ARGN)
     message(SEND_ERROR "Error: PROTOBUF_CATKIN_GENERATE_CPP() called without any proto files")
     return()
