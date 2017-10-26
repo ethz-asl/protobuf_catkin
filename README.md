@@ -8,7 +8,7 @@ In your `CMakeLists.txt`, call the protobuf compiler:
 
 ```cmake
 set(PROTO_DEFNS proto/path-to-my-protos/my-proto.proto)
-set(${BASE_PATH} "proto")
+set(BASE_PATH "proto")
 PROTOBUF_CATKIN_GENERATE_CPP2(${BASE_PATH} PROTO_SRCS PROTO_HDRS ${PROTO_DEFNS}) 
 
 ...
