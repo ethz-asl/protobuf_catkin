@@ -95,12 +95,11 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
       ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_SHARE_DESTINATION}/proto)
   file(MAKE_DIRECTORY ${PROTO_FILE_INSTALL_DIR})
   list(APPEND _protobuf_include_path -I ${PROTO_FILE_INSTALL_DIR})
-  message("PROTO_FILE_INSTALL_DIR ${PROTO_FILE_INSTALL_DIR}")
 
   set(PYTHON_PROTOC_ARG_VALUE "")
   set(PYTHON_PROTOC_ARG_FLAGS "")
-  set(COMPILE_PYTHON TRUE)
-  if (${COMPILE_PYTHON})
+  set(PROTOC_PYTHON_COMMENT "")
+  if (${PROTOBUF_COMPILE_PYTHON})
     # The path of the Python package under devel/lib/python../dist-packages/{project_name}
     set(PYTHON_PACKAGE_PATH "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}")
     file(MAKE_DIRECTORY ${PYTHON_PACKAGE_PATH})
@@ -109,8 +108,8 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     set(PYTHON_OUT_DIR "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}")
     set(PYTHON_PROTOC_ARG_FLAG "--python_out")
     set(PYTHON_PROTOC_ARG_VALUE ${PYTHON_OUT_DIR})
+    set(PROTOC_PYTHON_COMMENT " and Python")
   endif()
-  message("PYTHON_PROTOC_ARG: ${PYTHON_PROTOC_ARG}")
 
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
@@ -139,7 +138,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
       OUTPUT "${OUTPUT_BASE_FILE_NAME}.pb.cc"
              "${OUTPUT_BASE_FILE_NAME}.pb.h"
              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
-             "${PROTO_FILE_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.proto"
+             "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
       COMMAND  "${CATKIN_DEVEL_PREFIX}/bin/protoc"
       ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${_protobuf_include_path} ${ABS_FIL}
       COMMAND ${CMAKE_COMMAND} -E copy
@@ -149,7 +148,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
               ${ABS_FIL}
               "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
       DEPENDS ${ABS_FIL}
-      COMMENT "Running C++ and Python protocol buffer compiler on ${FIL}."
+      COMMENT "Running C++${PROTOC_PYTHON_COMMENT} protocol buffer compiler on ${FIL}."
       VERBATIM)
   endforeach()
 
@@ -158,7 +157,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
   set(${HDRS} ${${HDRS}} PARENT_SCOPE)  
 
 
-  if (${COMPILE_PYTHON})
+  if (${PROTOBUF_COMPILE_PYTHON})
     # The filepath of the Python package init file.
     set(PYTHON_INIT_FILEPATH "${PYTHON_PACKAGE_PATH}/__init__.py")
     # Clear the __init__.py file first.
