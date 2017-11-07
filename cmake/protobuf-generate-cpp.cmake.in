@@ -95,6 +95,22 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
       ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_SHARE_DESTINATION}/proto)
   file(MAKE_DIRECTORY ${PROTO_FILE_INSTALL_DIR})
   list(APPEND _protobuf_include_path -I ${PROTO_FILE_INSTALL_DIR})
+  message("PROTO_FILE_INSTALL_DIR ${PROTO_FILE_INSTALL_DIR}")
+
+  set(PYTHON_PROTOC_ARG_VALUE "")
+  set(PYTHON_PROTOC_ARG_FLAGS "")
+  set(COMPILE_PYTHON TRUE)
+  if (${COMPILE_PYTHON})
+    # The path of the Python package under devel/lib/python../dist-packages/{project_name}
+    set(PYTHON_PACKAGE_PATH "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}")
+    file(MAKE_DIRECTORY ${PYTHON_PACKAGE_PATH})
+
+    # Setting the protoc arguments to include compilation of Python files.
+    set(PYTHON_OUT_DIR "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}")
+    set(PYTHON_PROTOC_ARG_FLAG "--python_out")
+    set(PYTHON_PROTOC_ARG_VALUE ${PYTHON_OUT_DIR})
+  endif()
+  message("PYTHON_PROTOC_ARG: ${PYTHON_PROTOC_ARG}")
 
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
@@ -105,6 +121,12 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     # BASE_PATH. E.g., for base path "proto" and file 
     # "proto/project/definitions.proto", FIL_REL_DIR would be "project".
     string(REGEX REPLACE "${BASE_PATH}/?" "" FIL_REL_DIR ${FIL_REL_DIR})
+
+    # Variable for the protobuf share folder (e.g., ../devel/share/proto/project-name)
+    set(PROTO_SHARE_FOLDER ${PROTO_FILE_INSTALL_DIR}/${FIL_REL_DIR})
+    file(MAKE_DIRECTORY ${PROTO_SHARE_FOLDER})
+
+    # The protoc output folder for C++ .h/.cc files.
     set(OUTPUT_FOLDER ${COMPILED_PROTO_FOLDER}/${FIL_REL_DIR})
     set(OUTPUT_FOLDER_BASE ${COMPILED_PROTO_FOLDER})
     file(MAKE_DIRECTORY ${OUTPUT_FOLDER})
@@ -117,25 +139,49 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
       OUTPUT "${OUTPUT_BASE_FILE_NAME}.pb.cc"
              "${OUTPUT_BASE_FILE_NAME}.pb.h"
              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
-             "${PROTO_FILE_INSTALL_DIR}/${PROJECT_NAME}/${FIL_WE}.proto"
+             "${PROTO_FILE_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.proto"
       COMMAND  "${CATKIN_DEVEL_PREFIX}/bin/protoc"
-      ARGS --cpp_out  ${OUTPUT_FOLDER_BASE} ${_protobuf_include_path} ${ABS_FIL}
+      ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${_protobuf_include_path} ${ABS_FIL}
       COMMAND ${CMAKE_COMMAND} -E copy
               "${OUTPUT_BASE_FILE_NAME}.pb.h"
               "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.pb.h"
       COMMAND ${CMAKE_COMMAND} -E copy
               ${ABS_FIL}
-              "${PROTO_FILE_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.proto"
+              "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
       DEPENDS ${ABS_FIL}
-      COMMENT "Running C++ protocol buffer compiler on ${FIL}"
-      VERBATIM )
+      COMMENT "Running C++ and Python protocol buffer compiler on ${FIL}."
+      VERBATIM)
   endforeach()
 
   set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
-  set(${HDRS} ${${HDRS}} PARENT_SCOPE)
-endfunction()
+  set(${HDRS} ${${HDRS}} PARENT_SCOPE)  
 
+
+  if (${COMPILE_PYTHON})
+    # The filepath of the Python package init file.
+    set(PYTHON_INIT_FILEPATH "${PYTHON_PACKAGE_PATH}/__init__.py")
+    # Clear the __init__.py file first.
+    add_custom_target(clear_init ALL
+      COMMAND ${CMAKE_COMMAND} -E remove ${PYTHON_INIT_FILEPATH}
+      COMMENT "Cleared and wrote __init__.py."
+      VERBATIM)
+
+    # The Python files must be listed in a __init__.py file.
+    foreach(FIL ${ARGN})
+      get_filename_component(FIL_WE ${FIL} NAME_WE) 
+      # The python filename must not contain '-'. 
+      # They are automatically replacted with '_' by protoc.
+      string(REGEX REPLACE "-" "_" PYTHON_FILENAME ${FIL_WE})
+      add_custom_target(append_init_${PYTHON_FILENAME} ALL
+        COMMAND ${CMAKE_COMMAND} -E echo "from ${PYTHON_FILENAME}_pb2 import *" >> ${PYTHON_INIT_FILEPATH}
+        COMMENT "Appended to __init__.py."
+        DEPENDS clear_init
+        VERBATIM)
+    endforeach()
+  endif()
+
+endfunction()
 #
 # Main.
 #
