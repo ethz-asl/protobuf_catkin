@@ -99,7 +99,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
   set(PYTHON_PROTOC_ARG_VALUE "")
   set(PYTHON_PROTOC_ARG_FLAGS "")
   set(PROTOC_PYTHON_COMMENT "")
-  if (${PROTOBUF_COMPILE_PYTHON})
+  if(${PROTOBUF_COMPILE_PYTHON})
     # Setting the protoc arguments to include compilation of Python files.    
     set(PYTHON_PROTOC_ARG_FLAG "--python_out")
     set(PYTHON_PROTOC_ARG_VALUE ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
@@ -112,7 +112,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     get_filename_component(FIL_REL_DIR ${FIL} DIRECTORY)
 
     # FIL_REL_DIR contains the path to the proto file, starting inside
-    # BASE_PATH. E.g., for base path "proto" and file.
+    # BASE_PATH. E.g., for base path "proto" and file
     # "proto/project/definitions.proto", FIL_REL_DIR would be "project".
     string(REGEX REPLACE "${BASE_PATH}/?" "" FIL_REL_DIR ${FIL_REL_DIR})
 
@@ -151,13 +151,13 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
   set(${HDRS} ${${HDRS}} PARENT_SCOPE)  
 
-  if (${PROTOBUF_COMPILE_PYTHON})
+  if(${PROTOBUF_COMPILE_PYTHON})
     # The path of the Python package under devel/lib/python../dist-packages/{project_name}.
     set(PYTHON_PACKAGE_PATH ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION})
     file(MAKE_DIRECTORY ${PYTHON_PACKAGE_PATH})
     # The filepath of the Python package init file.
     set(PYTHON_INIT_FILEPATH "${PYTHON_PACKAGE_PATH}/__init__.py")
-    if (NOT EXISTS ${PYTHON_INIT_FILEPATH})
+    if(NOT EXISTS ${PYTHON_INIT_FILEPATH})
       add_custom_target(create_empty_init ALL
         COMMAND ${CMAKE_COMMAND} -E touch ${PYTHON_INIT_FILEPATH}
         COMMENT "Created empty __init__.py."
