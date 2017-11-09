@@ -96,15 +96,31 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
   file(MAKE_DIRECTORY ${PROTO_FILE_INSTALL_DIR})
   list(APPEND _protobuf_include_path -I ${PROTO_FILE_INSTALL_DIR})
 
+  set(PYTHON_PROTOC_ARG_VALUE "")
+  set(PYTHON_PROTOC_ARG_FLAGS "")
+  set(PROTOC_PYTHON_COMMENT "")
+  if(${PROTOBUF_COMPILE_PYTHON})
+    # Setting the protoc arguments to include compilation of Python files.    
+    set(PYTHON_PROTOC_ARG_FLAG "--python_out")
+    set(PYTHON_PROTOC_ARG_VALUE ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
+    set(PROTOC_PYTHON_COMMENT " and Python")
+  endif()
+
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
     get_filename_component(FIL_WE ${FIL} NAME_WE)
     get_filename_component(FIL_REL_DIR ${FIL} DIRECTORY)
 
     # FIL_REL_DIR contains the path to the proto file, starting inside
-    # BASE_PATH. E.g., for base path "proto" and file 
+    # BASE_PATH. E.g., for base path "proto" and file
     # "proto/project/definitions.proto", FIL_REL_DIR would be "project".
     string(REGEX REPLACE "${BASE_PATH}/?" "" FIL_REL_DIR ${FIL_REL_DIR})
+
+    # Variable for the protobuf share folder (e.g., ../devel/share/proto/project-name)
+    set(PROTO_SHARE_FOLDER ${PROTO_FILE_INSTALL_DIR}/${FIL_REL_DIR})
+    file(MAKE_DIRECTORY ${PROTO_SHARE_FOLDER})
+
+    # The protoc output folder for C++ .h/.cc files.
     set(OUTPUT_FOLDER ${COMPILED_PROTO_FOLDER}/${FIL_REL_DIR})
     set(OUTPUT_FOLDER_BASE ${COMPILED_PROTO_FOLDER})
     file(MAKE_DIRECTORY ${OUTPUT_FOLDER})
@@ -117,25 +133,39 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
       OUTPUT "${OUTPUT_BASE_FILE_NAME}.pb.cc"
              "${OUTPUT_BASE_FILE_NAME}.pb.h"
              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
-             "${PROTO_FILE_INSTALL_DIR}/${PROJECT_NAME}/${FIL_WE}.proto"
+             "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
       COMMAND  "${CATKIN_DEVEL_PREFIX}/bin/protoc"
-      ARGS --cpp_out  ${OUTPUT_FOLDER_BASE} ${_protobuf_include_path} ${ABS_FIL}
+      ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${_protobuf_include_path} ${ABS_FIL}
       COMMAND ${CMAKE_COMMAND} -E copy
               "${OUTPUT_BASE_FILE_NAME}.pb.h"
               "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.pb.h"
       COMMAND ${CMAKE_COMMAND} -E copy
               ${ABS_FIL}
-              "${PROTO_FILE_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.proto"
+              "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
       DEPENDS ${ABS_FIL}
-      COMMENT "Running C++ protocol buffer compiler on ${FIL}"
-      VERBATIM )
+      COMMENT "Running C++${PROTOC_PYTHON_COMMENT} protocol buffer compiler on ${FIL}."
+      VERBATIM)
   endforeach()
 
   set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
-  set(${HDRS} ${${HDRS}} PARENT_SCOPE)
-endfunction()
+  set(${HDRS} ${${HDRS}} PARENT_SCOPE)  
 
+  if(${PROTOBUF_COMPILE_PYTHON})
+    # The path of the Python package under devel/lib/python../dist-packages/{project_name}.
+    set(PYTHON_PACKAGE_PATH ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION})
+    file(MAKE_DIRECTORY ${PYTHON_PACKAGE_PATH})
+    # The filepath of the Python package init file.
+    set(PYTHON_INIT_FILEPATH "${PYTHON_PACKAGE_PATH}/__init__.py")
+    if(NOT EXISTS ${PYTHON_INIT_FILEPATH})
+      add_custom_target(create_empty_init ALL
+        COMMAND ${CMAKE_COMMAND} -E touch ${PYTHON_INIT_FILEPATH}
+        COMMENT "Created empty __init__.py."
+        VERBATIM)
+    endif()
+  endif()
+
+endfunction()
 #
 # Main.
 #
