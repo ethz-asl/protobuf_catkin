@@ -15,7 +15,7 @@ ExternalProject_Add(protobuf_src
                 patch -p0 < ${CMAKE_SOURCE_DIR}/unused_parameter_warnings_wire_format.patch
   CONFIGURE_COMMAND cd ../protobuf_src && ./autogen.sh && ./configure --with-pic --prefix=${CATKIN_DEVEL_PREFIX}
   BUILD_COMMAND cd ../protobuf_src && make -j8 && cd python && python setup.py build --build-purelib build
-  INSTALL_COMMAND cd ../protobuf_src && make install -j8 && pwd && cp -a python/build/google ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}
+  INSTALL_COMMAND cd ../protobuf_src && make install -j8 && cp -a python/build/google ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}
 )
 
 cs_add_library(${PROJECT_NAME} src/dependency_tracker.cc)
