@@ -203,3 +203,9 @@ endfunction()
 if(NOT DEFINED PROTOBUF_GENERATE_CPP_APPEND_PATH)
   set(PROTOBUF_GENERATE_CPP_APPEND_PATH TRUE)
 endif()
+
+# Ensure that devel/include is part of the include directories. This is
+# necessary as otherwise sometimes that folder is not added to the include dirs
+# which means that the compiler cannot find the generated proto header from
+# other packages.
+include_directories(${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION})
