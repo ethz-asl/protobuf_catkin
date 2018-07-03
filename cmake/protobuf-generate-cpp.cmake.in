@@ -13,6 +13,21 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+function(_find_protobuf_compiler)
+  set(PROTOBUF_COMPILER_CANDIDATES
+      "${CATKIN_DEVEL_PREFIX}/bin/protoc"
+      "/opt/ros/$ENV{ROS_DISTRO}/bin/protoc"
+  )
+  foreach(candidate ${PROTOBUF_COMPILER_CANDIDATES})
+    if(EXISTS ${candidate})
+      message("Found protobuf compiler under ${candidate}.")
+      set(${candidate} PROTOBUF_COMPILER PARENT_SCOPE)
+      return()
+    endif()
+  endforeach()
+  message(FATAL_ERROR "Couldn't find protobuf compiler. Checked the following paths: ${PROTOBUF_COMPILER_CANDIDATES}")
+endfunction()
+
 # Legacy function for backwards compatibility.
 function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
   message(WARNING "PROTOBUF_CATKIN_GENERATE_CPP is deprecated. Please use PROTOBUF_CATKIN_GENERATE_CPP2 instead. Check the Readme for details.")
@@ -45,6 +60,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
 
   set(${SRCS})
   set(${HDRS})
+  _find_protobuf_compiler()
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
     get_filename_component(FIL_WE ${FIL} NAME_WE)
@@ -55,7 +71,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
              "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-      COMMAND  "@CATKIN_DEVEL_PREFIX@/bin/protoc"
+      COMMAND  "${PROTOBUF_COMPILER}"
       ARGS --cpp_out  ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++ protocol buffer compiler on ${FIL}"
@@ -109,6 +125,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     set(PROTOC_PYTHON_COMMENT " and Python")
   endif()
 
+  _find_protobuf_compiler()
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
     get_filename_component(FIL_WE ${FIL} NAME_WE)
@@ -137,7 +154,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
              "${OUTPUT_BASE_FILE_NAME}.pb.h"
              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
              "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
-      COMMAND  "${CATKIN_DEVEL_PREFIX}/bin/protoc"
+      COMMAND  "${PROTOBUF_COMPILER}"
       ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${_protobuf_include_path} ${ABS_FIL}
       COMMAND ${CMAKE_COMMAND} -E copy
               "${OUTPUT_BASE_FILE_NAME}.pb.h"
