@@ -201,6 +201,8 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
         COMMENT "Created empty __init__.py."
         VERBATIM)
     endif()
+    install(DIRECTORY ${PYTHON_PACKAGE_PATH}
+            DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
   endif()
 
 endfunction()
