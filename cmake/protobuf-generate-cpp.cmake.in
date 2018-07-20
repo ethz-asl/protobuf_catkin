@@ -185,7 +185,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
   set(${HDRS} ${${HDRS}} PARENT_SCOPE)
 
-  include_directories(${PROTO_GENERATED_HEADERS_INSTALL_DIR})
+  include_directories(${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION})
   install(FILES ${${HDRS}}
           DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/${FIL_REL_DIR})
 
@@ -213,9 +213,3 @@ endfunction()
 if(NOT DEFINED PROTOBUF_GENERATE_CPP_APPEND_PATH)
   set(PROTOBUF_GENERATE_CPP_APPEND_PATH TRUE)
 endif()
-
-# Ensure that devel/include is part of the include directories. This is
-# necessary as otherwise sometimes that folder is not added to the include dirs
-# which means that the compiler cannot find the generated proto header from
-# other packages.
-include_directories(${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION})
