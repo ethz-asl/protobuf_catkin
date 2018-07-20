@@ -13,6 +13,21 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+function(_find_protobuf_compiler)
+  set(PROTOBUF_COMPILER_CANDIDATES
+      "${CATKIN_DEVEL_PREFIX}/bin/protoc"
+      "/opt/ros/$ENV{ROS_DISTRO}/bin/protoc"
+  )
+  foreach(candidate ${PROTOBUF_COMPILER_CANDIDATES})
+    if(EXISTS ${candidate})
+      message(STATUS "Found protobuf compiler: ${candidate}")
+      set(PROTOBUF_COMPILER ${candidate} PARENT_SCOPE)
+      return()
+    endif()
+  endforeach()
+  message(FATAL_ERROR "Couldn't find protobuf compiler. Please ensure that protobuf_catkin is properly installed. Checked the following paths: ${PROTOBUF_COMPILER_CANDIDATES}")
+endfunction()
+
 # Legacy function for backwards compatibility.
 function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
   message(WARNING "PROTOBUF_CATKIN_GENERATE_CPP is deprecated. Please use PROTOBUF_CATKIN_GENERATE_CPP2 instead. Check the Readme for details.")
@@ -45,17 +60,18 @@ function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
 
   set(${SRCS})
   set(${HDRS})
+  _find_protobuf_compiler()
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
     get_filename_component(FIL_WE ${FIL} NAME_WE)
-    
+
     list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc")
     list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h")
 
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
              "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-      COMMAND  "@CATKIN_DEVEL_PREFIX@/bin/protoc"
+      COMMAND  "${PROTOBUF_COMPILER}"
       ARGS --cpp_out  ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++ protocol buffer compiler on ${FIL}"
@@ -65,6 +81,8 @@ function(PROTOBUF_CATKIN_GENERATE_CPP SRCS HDRS)
   set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
   set(${HDRS} ${${HDRS}} PARENT_SCOPE)
+  install(FILES ${${HDRS}}
+          DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION})
 endfunction()
 
 function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
@@ -91,21 +109,33 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
 
   # Folder where the proto files are placed, so that they can be used in other
   # proto definitions. This should resolve to "devel/share/proto".
-  set(PROTO_FILE_INSTALL_DIR 
-      ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_SHARE_DESTINATION}/proto)
+  set(PROTO_SHARE_SUB_FOLDER "proto")
+  set(PROTO_FILE_INSTALL_DIR
+      ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROTO_SHARE_SUB_FOLDER})
   file(MAKE_DIRECTORY ${PROTO_FILE_INSTALL_DIR})
-  list(APPEND _protobuf_include_path -I ${PROTO_FILE_INSTALL_DIR})
+
+  set(include_candidates
+       "${PROTO_FILE_INSTALL_DIR}"
+       "${CMAKE_INSTALL_PREFIX}/${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROTO_SHARE_SUB_FOLDER}"
+       "/opt/ros/$ENV{ROS_DISTRO}/${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROTO_SHARE_SUB_FOLDER}"
+  )
+  foreach(include_candidate ${include_candidates})
+    if(EXISTS "${include_candidate}")
+      list(APPEND _protobuf_include_path "-I" ${include_candidate})
+    endif()
+  endforeach()
 
   set(PYTHON_PROTOC_ARG_VALUE "")
   set(PYTHON_PROTOC_ARG_FLAGS "")
   set(PROTOC_PYTHON_COMMENT "")
   if(${PROTOBUF_COMPILE_PYTHON})
-    # Setting the protoc arguments to include compilation of Python files.    
+    # Setting the protoc arguments to include compilation of Python files.
     set(PYTHON_PROTOC_ARG_FLAG "--python_out")
     set(PYTHON_PROTOC_ARG_VALUE ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
     set(PROTOC_PYTHON_COMMENT " and Python")
   endif()
 
+  _find_protobuf_compiler()
   foreach(FIL ${ARGN})
     get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
     get_filename_component(FIL_WE ${FIL} NAME_WE)
@@ -134,7 +164,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
              "${OUTPUT_BASE_FILE_NAME}.pb.h"
              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
              "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
-      COMMAND  "${CATKIN_DEVEL_PREFIX}/bin/protoc"
+      COMMAND  "${PROTOBUF_COMPILER}"
       ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${_protobuf_include_path} ${ABS_FIL}
       COMMAND ${CMAKE_COMMAND} -E copy
               "${OUTPUT_BASE_FILE_NAME}.pb.h"
@@ -145,11 +175,19 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++${PROTOC_PYTHON_COMMENT} protocol buffer compiler on ${FIL}."
       VERBATIM)
+      install(
+          FILES ${ABS_FIL}
+          DESTINATION ${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROTO_SHARE_SUB_FOLDER}/${FIL_REL_DIR}
+      )
   endforeach()
 
   set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
   set(${SRCS} ${${SRCS}} PARENT_SCOPE)
-  set(${HDRS} ${${HDRS}} PARENT_SCOPE)  
+  set(${HDRS} ${${HDRS}} PARENT_SCOPE)
+
+  include_directories(${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION})
+  install(FILES ${${HDRS}}
+          DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/${FIL_REL_DIR})
 
   if(${PROTOBUF_COMPILE_PYTHON})
     # The path of the Python package under devel/lib/python../dist-packages/{project_name}.
@@ -163,6 +201,8 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
         COMMENT "Created empty __init__.py."
         VERBATIM)
     endif()
+    install(DIRECTORY ${PYTHON_PACKAGE_PATH}
+            DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
   endif()
 
 endfunction()

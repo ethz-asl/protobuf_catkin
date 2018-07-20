@@ -20,15 +20,15 @@ ExternalProject_Add(protobuf_src
                   cp build/google/__init__.py ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}/google
 )
 
-cs_add_library(${PROJECT_NAME} src/dependency_tracker.cc)
-add_dependencies(${PROJECT_NAME} protobuf_src)
-target_link_libraries(${PROJECT_NAME}
-  ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf-lite${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${CATKIN_DEVEL_PREFIX}/lib/libprotoc${CMAKE_SHARED_LIBRARY_SUFFIX}
-  ${CATKIN_DEVEL_PREFIX}/lib/libprotobuf${CMAKE_SHARED_LIBRARY_SUFFIX})
-
-cs_install()
-
-cs_export(
-  INCLUDE_DIRS ${CATKIN_DEVEL_PREFIX}/include
-  CFG_EXTRAS protobuf-generate-cpp.cmake protobuf-extras.cmake)
+install(DIRECTORY ${CATKIN_DEVEL_PREFIX}/include/google/protobuf
+        DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/google
+        FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY ${CATKIN_DEVEL_PREFIX}/lib/
+        DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        FILES_MATCHING PATTERN "libproto*")
+install(FILES ${CATKIN_DEVEL_PREFIX}/bin/protoc
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+cs_export(INCLUDE_DIRS ${CATKIN_DEVEL_PREFIX}/include
+          LIBRARIES protobuf protobuf-lite protoc
+          CFG_EXTRAS protobuf-generate-cpp.cmake)
