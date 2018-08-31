@@ -15,9 +15,14 @@
 
 function(_find_protobuf_compiler)
   set(PROTOBUF_COMPILER_CANDIDATES
-      "${CATKIN_DEVEL_PREFIX}/bin/protoc"
+      "${CATKIN_DEVEL_PREFIX}/bin/protoc"	       # only works from same workspace 
+						       # (DEVEL_PREFIX evaluates to workspace that is built, 
+						       # not workspace where protobuf_catkin is)
       "/opt/ros/$ENV{ROS_DISTRO}/bin/protoc"
+      "${protobuf_catkin_INCLUDE_DIRS}/../bin/protoc"  # if protoc is needed from another merged workspace, 
+						       # use path that leads to package workspace
   )
+
   foreach(candidate ${PROTOBUF_COMPILER_CANDIDATES})
     if(EXISTS ${candidate})
       message(STATUS "Found protobuf compiler: ${candidate}")
