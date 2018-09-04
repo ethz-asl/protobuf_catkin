@@ -14,13 +14,16 @@
 #  License text for the above reference.)
 
 function(_find_protobuf_compiler)
+  # get first directory that points into devel space of protobuf catkin workspace
+  list (GET protobuf_catkin_INCLUDE_DIRS 0 first_protobuf_catkin_include_dir)
+
   set(PROTOBUF_COMPILER_CANDIDATES
       "${CATKIN_DEVEL_PREFIX}/bin/protoc"	       # only works from same workspace 
 						       # (DEVEL_PREFIX evaluates to workspace that is built, 
 						       # not workspace where protobuf_catkin is)
       "/opt/ros/$ENV{ROS_DISTRO}/bin/protoc"
-      "${protobuf_catkin_INCLUDE_DIRS}/../bin/protoc"  # if protoc is needed from another merged workspace, 
-						       # use path that leads to package workspace
+      "${first_protobuf_catkin_include_dir}/../bin/protoc"  # if protoc is needed from another merged workspace, 
+                                                            # use path that leads to package workspace
   )
 
   foreach(candidate ${PROTOBUF_COMPILER_CANDIDATES})
