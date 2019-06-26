@@ -9,7 +9,7 @@ include(ExternalProject)
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 
 ExternalProject_Add(protobuf_src
-  URL https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+  DOWNLOAD_COMMAND wget --retry-connrefused --waitretry=1 --timeout=12 --tries 10 https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
   UPDATE_COMMAND ""
   PATCH_COMMAND patch -p0 < ${CMAKE_SOURCE_DIR}/unused_parameter_warnings.patch &&
                 patch -p0 < ${CMAKE_SOURCE_DIR}/unused_parameter_warnings_wire_format.patch
