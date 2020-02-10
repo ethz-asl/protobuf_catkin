@@ -151,6 +151,17 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     set(PYTHON_PROTOC_ARG_VALUE ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION})
     set(PROTOC_PYTHON_COMMENT " and Python")
   endif()
+  set(GRPC_PROTOC_ARG_FLAG "")
+  set(GRPC_PROTOC_ARG_VALUE "")
+  set(GRPC_PROTOC_PLUGIN_FLAG "")
+  set(GRPC_PROTOC_DEP "")
+  set(GRPC_PROTOC_COMMENT "")
+  if (${PROTOBUF_COMPILE_GRPC})
+    set(GRPC_PROTOC_ARG_FLAG "--grpc_out")
+    set(GRPC_PROTOC_ARG_VALUE ${COMPILED_PROTO_FOLDER})
+    set(GRPC_PROTOC_PLUGIN_FLAG "--plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN_GLOBAL}")
+    set(GRPC_PROTOC_COMMENT " and GRPC")
+  endif()
 
   _find_protobuf_compiler()
   foreach(FIL ${ARGN})
@@ -171,6 +182,7 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     set(OUTPUT_FOLDER ${COMPILED_PROTO_FOLDER}/${FIL_REL_DIR})
     set(OUTPUT_FOLDER_BASE ${COMPILED_PROTO_FOLDER})
     file(MAKE_DIRECTORY ${OUTPUT_FOLDER})
+    file(MAKE_DIRECTORY "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}")
     set(OUTPUT_BASE_FILE_NAME "${OUTPUT_FOLDER}/${FIL_WE}")
 
     list(APPEND ${SRCS} "${OUTPUT_BASE_FILE_NAME}.pb.cc")
@@ -182,20 +194,36 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
              "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
       COMMAND  "${PROTOBUF_COMPILER}"
-      ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${_protobuf_include_path} ${ABS_FIL}
+      ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${GRPC_PROTOC_ARG_FLAG} ${GRPC_PROTOC_ARG_VALUE} ${GRPC_PROTOC_PLUGIN_FLAG} ${_protobuf_include_path} ${ABS_FIL}
       COMMAND ${CMAKE_COMMAND} -E copy
               "${OUTPUT_BASE_FILE_NAME}.pb.h"
               "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.pb.h"
-      COMMAND ${CMAKE_COMMAND} -E copy
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
               ${ABS_FIL}
               "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
       DEPENDS ${ABS_FIL}
-      COMMENT "Running C++${PROTOC_PYTHON_COMMENT} protocol buffer compiler on ${FIL}."
+      COMMENT "Running C++${PYTHON_PROTOC_COMMENT}${GRPC_PROTOC_COMMENT} protocol buffer compiler on ${FIL}."
       VERBATIM)
       install(
           FILES ${ABS_FIL}
           DESTINATION ${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROTO_SHARE_SUB_FOLDER}/${FIL_REL_DIR}
       )
+
+    # Copy over the GRPC stuff as well.
+    if (${PROTOBUF_COMPILE_GRPC})
+      add_custom_command(
+        OUTPUT "${OUTPUT_BASE_FILE_NAME}.grpc.pb.cc"
+               "${OUTPUT_BASE_FILE_NAME}.grpc.pb.h"
+               "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/{FIL_REL_DIR}/${FIL_WE}.grpc.pb.h"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${OUTPUT_BASE_FILE_NAME}.grpc.pb.h"
+                "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.grpc.pb.h"
+        DEPENDS ${ABS_FIL} "${OUTPUT_BASE_FILE_NAME}.pb.h"
+        COMMENT "Copying over GRPC artifacts on ${FIL}."
+        VERBATIM)
+      list(APPEND ${SRCS} "${OUTPUT_BASE_FILE_NAME}.grpc.pb.cc")
+      list(APPEND ${HDRS} "${OUTPUT_BASE_FILE_NAME}.grpc.pb.h")
+    endif()
   endforeach()
 
   set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
