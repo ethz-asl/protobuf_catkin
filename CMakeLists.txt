@@ -10,7 +10,7 @@ set(PROTOBUF_MINIMUM_VERSION 2.6.1)
 
 # If set to OFF, will compile the given version of Protobuf.
 # If set to ON, will use the system version of Protobuf.
-# If set to GRPC, will use the version of protobuf that ships with grpc_catkin.
+# If set to GRPC, will use the version of protobuf that ships with catkin_grpc.
 # If set to AUTO, will try to use the system version if there is one, and build otherwise.
 set(USE_SYSTEM_PROTOBUF "AUTO" CACHE INTERNAL "Whether to use the system version of Protobuf.")
 
@@ -43,13 +43,15 @@ if(USE_SYSTEM_PROTOBUF STREQUAL "ON")
 elseif(USE_SYSTEM_PROTOBUF STREQUAL "GRPC")
   message(STATUS "Using protobuf from grpc_catkin.")
 
-  find_package(grpc_catkin REQUIRED)
-  # TODO(helenol): this is kinda hacky, but grpc_catkin doesn't seem to export this.
+  # This is actually catkin_grpc: https://github.com/CogRob/catkin_grpc
+  find_package(grpc REQUIRED)
+
+  # TODO(helenol): this is kinda hacky, but catkin_grpc doesn't seem to export this.
   set(PREFERRED_PROTOC_EXECUTABLE "/opt/ros/$ENV{ROS_DISTRO}/lib/grpc/protobuf/protoc")
 
   cs_install()
-  cs_export(INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS}
-            LIBRARIES ${Protobuf_LIBRARIES}
+  cs_export(INCLUDE_DIRS ${GRPC_INCLUDE_DIR}
+            LIBRARIES ${ALL_PROTOBUF_LIBS}
             CFG_EXTRAS protobuf-generate-cpp.cmake)
 
 elseif(USE_SYSTEM_PROTOBUF STREQUAL "OFF")
