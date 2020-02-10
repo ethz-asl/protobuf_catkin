@@ -1,3 +1,4 @@
+# Adapted by Helen Oleynikova from Simon Lynen's version.
 #=============================================================================
 # Copyright 2009 Kitware, Inc.
 # Copyright 2009-2011 Philip Lowman <philip@yhbt.com>
@@ -13,16 +14,22 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+# Copy the preferred protoc excutable.
+set(PREFERRED_PROTOC_EXECUTABLE "@PREFERRED_PROTOC_EXECUTABLE@")
+message(STATUS "Preferred Protoc Executable: ${PREFERRED_PROTOC_EXECUTABLE}")
+
 function(_find_protobuf_compiler)
   # get first directory that points into devel space of protobuf catkin workspace
   list (GET protobuf_catkin_INCLUDE_DIRS 0 first_protobuf_catkin_include_dir)
 
   set(PROTOBUF_COMPILER_CANDIDATES
-      "${CATKIN_DEVEL_PREFIX}/bin/protoc"	       # only works from same workspace 
-						       # (DEVEL_PREFIX evaluates to workspace that is built, 
-						       # not workspace where protobuf_catkin is)
+      "${PREFERRED_PROTOC_EXECUTABLE}"      # Set by preferences and exported.
+      "${PROTOBUF_PROTOC_EXECUTABLE}"       # This will be "/usr/bin/protoc" on Ubuntu if find_package succeeded.
+      "${CATKIN_DEVEL_PREFIX}/bin/protoc"   # only works from same workspace
+                   # (DEVEL_PREFIX evaluates to workspace that is built,
+                   # not workspace where protobuf_catkin is)
       "/opt/ros/$ENV{ROS_DISTRO}/bin/protoc"
-      "${first_protobuf_catkin_include_dir}/../bin/protoc"  # if protoc is needed from another merged workspace, 
+      "${first_protobuf_catkin_include_dir}/../bin/protoc"  # if protoc is needed from another merged workspace,
                                                             # use path that leads to package workspace
   )
 
@@ -123,9 +130,11 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
   file(MAKE_DIRECTORY ${PROTO_FILE_INSTALL_DIR})
 
   set(include_candidates
+       "/usr/include"
        "${PROTO_FILE_INSTALL_DIR}"
        "${CMAKE_INSTALL_PREFIX}/${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROTO_SHARE_SUB_FOLDER}"
        "/opt/ros/$ENV{ROS_DISTRO}/${CATKIN_GLOBAL_SHARE_DESTINATION}/${PROTO_SHARE_SUB_FOLDER}"
+       "/opt/ros/$ENV{ROS_DISTRO}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}/grpc/"
   )
   foreach(include_candidate ${include_candidates})
     if(EXISTS "${include_candidate}")
@@ -217,6 +226,7 @@ endfunction()
 #
 # Main.
 #
+
 
 # By default have PROTOBUF_GENERATE_CPP macro pass -I to protoc
 # for each directory where a proto file is referenced.
