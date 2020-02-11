@@ -18,7 +18,7 @@ set(USE_SYSTEM_PROTOBUF "AUTO" CACHE INTERNAL "Whether to use the system version
 # FindProtobuf cmake reference: https://github.com/Kitware/CMake/blob/master/Modules/FindProtobuf.cmake
 if(USE_SYSTEM_PROTOBUF STREQUAL "AUTO")
   find_package(Protobuf QUIET)
-  if(${Protobuf_FOUND} AND  ${Protobuf_VERSION} VERSION_GREATER ${PROTOBUF_MINIMUM_VERSION})
+  if(${Protobuf_FOUND} AND (DEFINED Protobuf_VERSION) AND ${Protobuf_VERSION} VERSION_GREATER ${PROTOBUF_MINIMUM_VERSION})
     message(STATUS "Found a suitable version of system protobuf: ${Protobuf_VERSION}")
     set(USE_SYSTEM_PROTOBUF "ON")
   else()
