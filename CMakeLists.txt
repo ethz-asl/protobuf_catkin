@@ -9,7 +9,7 @@ include(ExternalProject)
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 
 ExternalProject_Add(protobuf_src
-  URL https://github.com/protocolbuffers/protobuf/archive/v3.6.1.2.tar.gz
+  URL https://github.com/protocolbuffers/protobuf/archive/v3.6.0.tar.gz
   UPDATE_COMMAND ""
   CONFIGURE_COMMAND cd ../protobuf_src && ./autogen.sh && ./configure --with-pic --prefix=${CATKIN_DEVEL_PREFIX}
   BUILD_COMMAND cd ../protobuf_src && make -j8 && cd python && python setup.py build --build-purelib build
