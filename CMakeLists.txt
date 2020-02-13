@@ -12,7 +12,7 @@ set(PROTOBUF_MINIMUM_VERSION 2.6.1)
 # If set to ON, will use the system version of Protobuf.
 # If set to GRPC, will use the version of protobuf that ships with catkin_grpc.
 # If set to AUTO, will try to use the system version if there is one, and build otherwise.
-set(USE_SYSTEM_PROTOBUF "AUTO" CACHE INTERNAL "Whether to use the system version of Protobuf.")
+set(USE_SYSTEM_PROTOBUF "GRPC" CACHE INTERNAL "Whether to use the system version of Protobuf.")
 
 # Figure out what to do if it's auto.
 # FindProtobuf cmake reference: https://github.com/Kitware/CMake/blob/master/Modules/FindProtobuf.cmake
