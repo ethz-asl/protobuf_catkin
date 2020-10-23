@@ -142,6 +142,13 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     endif()
   endforeach()
 
+  # Add custom protobuf include directories
+  if(PROTOBUF_EXPORT_PATH)
+    foreach(PBEP ${PROTOBUF_EXPORT_PATH})
+      list(APPEND _protobuf_include_path -I ${PBEP})
+    endforeach()
+  endif()
+
   set(PYTHON_PROTOC_ARG_VALUE "")
   set(PYTHON_PROTOC_ARG_FLAGS "")
   set(PROTOC_PYTHON_COMMENT "")
