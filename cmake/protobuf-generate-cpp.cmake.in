@@ -142,6 +142,13 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     endif()
   endforeach()
 
+  # Add custom protobuf include directories
+  if(PROTOBUF_EXPORT_PATH)
+    foreach(PBEP ${PROTOBUF_EXPORT_PATH})
+      list(APPEND _protobuf_include_path -I ${PBEP})
+    endforeach()
+  endif()
+
   set(PYTHON_PROTOC_ARG_VALUE "")
   set(PYTHON_PROTOC_ARG_FLAGS "")
   set(PROTOC_PYTHON_COMMENT "")
@@ -191,16 +198,18 @@ function(PROTOBUF_CATKIN_GENERATE_CPP2 BASE_PATH SRCS HDRS)
     add_custom_command(
       OUTPUT "${OUTPUT_BASE_FILE_NAME}.pb.cc"
              "${OUTPUT_BASE_FILE_NAME}.pb.h"
-             "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_WE}.pb.h"
+             "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.pb.h"
              "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
-      COMMAND  "${PROTOBUF_COMPILER}"
+
+      COMMAND "${PROTOBUF_COMPILER}"
       ARGS --cpp_out ${OUTPUT_FOLDER_BASE} ${PYTHON_PROTOC_ARG_FLAG} ${PYTHON_PROTOC_ARG_VALUE} ${GRPC_PROTOC_ARG_FLAG} ${GRPC_PROTOC_ARG_VALUE} ${GRPC_PROTOC_PLUGIN_FLAG} ${_protobuf_include_path} ${ABS_FIL}
-      COMMAND ${CMAKE_COMMAND} -E copy
-              "${OUTPUT_BASE_FILE_NAME}.pb.h"
-              "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.pb.h"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              ${ABS_FIL}
-              "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
+
+      COMMAND ${CMAKE_COMMAND}
+      ARGS -E copy "${OUTPUT_BASE_FILE_NAME}.pb.h" "${PROTO_GENERATED_HEADERS_INSTALL_DIR}/${FIL_REL_DIR}/${FIL_WE}.pb.h"
+
+      COMMAND ${CMAKE_COMMAND}
+      ARGS -E copy ${ABS_FIL} "${PROTO_SHARE_FOLDER}/${FIL_WE}.proto"
+
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++${PYTHON_PROTOC_COMMENT}${GRPC_PROTOC_COMMENT} protocol buffer compiler on ${FIL}."
       VERBATIM)
