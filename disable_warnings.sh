@@ -31,4 +31,4 @@ fi
 # Now recursivly add the header and footer to the headers
 find $PROTO_INCLUDES_DIR -name "*.h" -print0 | xargs -0 -I file sh -c "cat $TEMPLATE_DIR/header file $TEMPLATE_DIR/footer > file.new; mv file.new file"
 echo "Successfully modified headers to disable the warnings."
-echo "To revert to the original state you can clean and rebuild the eigen_catkin package.";
+echo "To revert to the original state you can clean and rebuild the protobuf_catkin package.";
