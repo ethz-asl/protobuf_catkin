@@ -11,4 +11,6 @@
 
   <!-- OPTIONAL!!! Refers to catkin_grpc from CogRob: https://github.com/CogRob/catkin_grpc -->
   <build_depend>grpc</build_depend>
+  
+  <build_depend>protobuf-dev</build_depend>
 </package>
