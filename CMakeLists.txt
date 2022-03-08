@@ -42,7 +42,7 @@ if(USE_SYSTEM_PROTOBUF STREQUAL "ON")
   message(STATUS "Using system protobuf.")
 
   find_package(Protobuf REQUIRED)
-  set(PREFERRED_PROTOC_EXECUTABLE ${Protobuf_PROTOC_EXECUTABLE})
+  set(PREFERRED_PROTOC_EXECUTABLE ${Protobuf_PROTOC_EXECUTABLE} CACHE INTERNAL "")
 
   cs_install()
   cs_export(INCLUDE_DIRS ${Protobuf_INCLUDE_DIRS}
@@ -55,8 +55,8 @@ elseif(USE_SYSTEM_PROTOBUF STREQUAL "GRPC")
   # This is actually catkin_grpc: https://github.com/CogRob/catkin_grpc
   find_package(grpc REQUIRED)
 
-  # TODO(helenol): this is kinda hacky, but catkin_grpc doesn't seem to export this.
-  set(PREFERRED_PROTOC_EXECUTABLE "/opt/ros/$ENV{ROS_DISTRO}/lib/grpc/protobuf/protoc")
+	set(PREFERRED_PROTOC_EXECUTABLE "${GRPC_BIN_DIR}/protobuf/protoc" CACHE INTERNAL "")
+	message(STATUS "using grpc protobuf version from ${PREFERRED_PROTOC_EXECUTABLE}")
 
   cs_install()
   cs_export(INCLUDE_DIRS ${GRPC_INCLUDE_DIR}
@@ -87,7 +87,7 @@ elseif(USE_SYSTEM_PROTOBUF STREQUAL "OFF")
   install(FILES ${CATKIN_DEVEL_PREFIX}/bin/protoc
           PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
           DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
-  set(PREFERRED_PROTOC_EXECUTABLE ${CATKIN_DEVEL_PREFIX}/bin/protoc)
+  set(PREFERRED_PROTOC_EXECUTABLE ${CATKIN_DEVEL_PREFIX}/bin/protoc CACHE INTERNAL "")
   cs_export(INCLUDE_DIRS ${CATKIN_DEVEL_PREFIX}/include
             LIBRARIES protobuf protobuf-lite protoc
             CFG_EXTRAS protobuf-generate-cpp.cmake)
